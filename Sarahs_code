@@ -1,0 +1,170 @@
+Step by step what I have ran :)
+
+Step 1: Extract the colums for week 0 (Prime), week 18 (Boost) and week 88 (Pre-challange):
+
+For CountMatrix_O:
+awk -F',' '{ for (i=1; i<=NF; i++) { if (i==1 || $i ~ /_W0/) col[i] = 1 } } { for (i=1; i<=NF; i++) { if (i in col) printf "%s,", $i } printf "\n" }' CountMatrix_O.csv > CountMatrix_O_W0.csv
+awk -F',' '{ for (i=1; i<=NF; i++) { if (i==1 || $i ~ /_W18/) col[i] = 1 } } { for (i=1; i<=NF; i++) { if (i in col) printf "%s,", $i } printf "\n" }' CountMatrix_O.csv > CountMatrix_O_W18.csv
+awk -F',' '{ for (i=1; i<=NF; i++) { if (i==1 || $i ~ /_W88/) col[i] = 1 } } { for (i=1; i<=NF; i++) { if (i in col) printf "%s,", $i } printf "\n" }' CountMatrix_O.csv > CountMatrix_O_W880.csv
+
+For CountMatrix_S:
+awk -F',' '{ for (i=1; i<=NF; i++) { if (i==1 || $i ~ /_W0/) col[i] = 1 } } { for (i=1; i<=NF; i++) { if (i in col) printf "%s,", $i } printf "\n" }' CountMatrix_S.csv > CountMatrix_S_W0.csv
+awk -F',' '{ for (i=1; i<=NF; i++) { if (i==1 || $i ~ /_W18/) col[i] = 1 } } { for (i=1; i<=NF; i++) { if (i in col) printf "%s,", $i } printf "\n" }' CountMatrix_S.csv > CountMatrix_S_W18.csv
+awk -F',' '{ for (i=1; i<=NF; i++) { if (i==1 || $i ~ /_W88/) col[i] = 1 } } { for (i=1; i<=NF; i++) { if (i in col) printf "%s,", $i } printf "\n" }' CountMatrix_S.csv > CountMatrix_S_W88.csv
+
+NB! S15_30426_W0D7_Unpr is missing in the CountMatrix_S.csv file and S02_28835_W18D7_Unpr
+
+
+For CountMatrix_X:
+awk -F',' '{ for (i=1; i<=NF; i++) { if (i==1 || $i ~ /_W0/) col[i] = 1 } } { for (i=1; i<=NF; i++) { if (i in col) printf "%s,", $i } printf "\n" }' CountMatrix_X.csv > CountMatrix_X_W0.csv
+awk -F',' '{ for (i=1; i<=NF; i++) { if (i==1 || $i ~ /_W18/) col[i] = 1 } } { for (i=1; i<=NF; i++) { if (i in col) printf "%s,", $i } printf "\n" }' CountMatrix_X.csv > CountMatrix_X_W18.csv
+awk -F',' '{ for (i=1; i<=NF; i++) { if (i==1 || $i ~ /_W88/) col[i] = 1 } } { for (i=1; i<=NF; i++) { if (i in col) printf "%s,", $i } printf "\n" }' CountMatrix_X.csv > CountMatrix_X_W88.csv
+
+
+R stript for MCFS, same things where run for each SOX csv: 
+(Called Experiment 1)
+
+# load packages
+library(rmcfs)
+library(readr)
+install.packages("data.table")
+library(data.table)
+
+#mcfs parameters
+proj_var <- 'auto'
+proj_size_var <- 'auto'
+split_var <- 5
+splitSetSize_var <- 500
+cutoffPermutations_var <- 20
+
+#Load the datasets
+CountMatrix_X_W0 <- read.csv("CountMatrix_SOX/CountMatrix_X_W0.csv", header = TRUE, row.names = 1)
+CountMatrix_X_W18 <- read.csv("CountMatrix_SOX/CountMatrix_X_W18.csv", header = TRUE, row.names = 1)
+CountMatrix_X_W88 <- read.csv("CountMatrix_SOX/CountMatrix_X_W88.csv", header = TRUE, row.names = 1)
+
+#Create lists for each label column
+Label_X <- c('Protected', 'Protected', 'Protected', 'Protected',
+             'Unprotected','Unprotected','Unprotected','Unprotected',
+             'Protected', 'Protected', 'Protected', 'Protected',
+             'Unprotected','Unprotected','Unprotected','Unprotected',
+             'Unprotected','Unprotected','Unprotected','Unprotected',
+             'Protected', 'Protected', 'Protected', 'Protected',
+             'Protected', 'Protected', 'Protected', 'Protected',
+             'Unprotected','Unprotected','Unprotected','Unprotected',
+             'Protected', 'Protected', 'Protected', 'Protected',
+             'Unprotected','Unprotected','Unprotected','Unprotected',
+             'Unprotected','Unprotected','Unprotected','Unprotected',
+             'Unprotected','Unprotected','Unprotected','Unprotected',
+             'Unprotected','Unprotected','Unprotected','Unprotected',
+             'Unprotected','Unprotected','Unprotected','Unprotected',
+             'Protected', 'Protected', 'Protected', 'Protected')
+
+Label_X_W88 <- c('Protected', 'Unprotected','Protected', 'Unprotected',
+             'Unprotected','Protected', 'Protected', 'Unprotected',
+             'Protected', 'Unprotected','Unprotected','Unprotected',
+             'Unprotected', 'Unprotected','Protected')
+
+#List of all filenames
+file_list_O <- c("CountMatrix_X_W0", "CountMatrix_X_W18", "CountMatrix_X_W88")
+
+#Flip the dataset
+tp_dataset_X_W0 <- transpose(CountMatrix_X_W0)
+colnames(tp_dataset_X_W0) <- rownames(CountMatrix_X_W0)
+rownames(tp_dataset_X_W0) <- colnames(CountMatrix_X_W0)
+
+tp_dataset_X_W18 <- transpose(CountMatrix_X_W18)
+colnames(tp_dataset_X_W18) <- rownames(CountMatrix_X_W18)
+rownames(tp_dataset_X_W18) <- colnames(CountMatrix_X_W18)
+
+tp_dataset_X_W88 <- transpose(CountMatrix_X_W88)
+colnames(tp_dataset_X_W88) <- rownames(CountMatrix_X_W88)
+rownames(tp_dataset_X_W88) <- colnames(CountMatrix_X_W88)
+
+#Remove the X.1 column if it is present
+if ("X.1" %in% rownames(tp_dataset_X_W0)) {
+  # Remove the row if it exists
+  tp_dataset_X_W0 <- tp_dataset_X_W0[-which(rownames(tp_dataset_X_W0) == "X.1"), ]
+}
+
+if ("X.1" %in% rownames(tp_dataset_X_W18)) {
+  # Remove the row if it exists
+  tp_dataset_X_W18 <- tp_dataset_X_W18[-which(rownames(tp_dataset_X_W18) == "X.1"), ]
+}
+
+if ("X.1" %in% rownames(tp_dataset_X_W88)) {
+  # Remove the row if it exists
+  tp_dataset_X_W88 <- tp_dataset_X_W88[-which(rownames(tp_dataset_X_W88) == "X.1"), ]
+}
+
+#Add label column at the end
+tp_dataset_X_W0 <- cbind(tp_dataset_X_W0, Label = Label_X)
+tp_dataset_X_W18 <- cbind(tp_dataset_X_W18, Label = Label_X)
+tp_dataset_X_W88 <- cbind(tp_dataset_X_W88, Label = Label_X_W88)
+
+# perform monte carlo feature selection (random reducts)
+result_X_W0 <- mcfs(Label ~ ., tp_dataset_X_W0, projections = proj_var, 
+                    projectionSize = proj_size_var, splits = split_var, 
+                    splitSetSize = splitSetSize_var, 
+                    cutoffPermutations = cutoffPermutations_var, threadsNumber = 8)
+
+result_X_W18 <- mcfs(Label ~ ., tp_dataset_X_W18, projections = proj_var, 
+                     projectionSize = proj_size_var, splits = split_var, 
+                     splitSetSize = splitSetSize_var, 
+                     cutoffPermutations = cutoffPermutations_var, threadsNumber = 8)
+
+result_X_W88 <- mcfs(Label ~ ., tp_dataset_X_W88, projections = proj_var, 
+                     projectionSize = proj_size_var, splits = split_var, 
+                     splitSetSize = splitSetSize_var, 
+                     cutoffPermutations = cutoffPermutations_var, threadsNumber = 8)
+
+head(result_X_W0$RI)
+head(result_X_W18$RI)
+head(result_X_W88$RI)
+tail((result_X_W0$RI))
+tail((result_X_W18$RI))
+tail((result_X_W88$RI))
+# print(result_O$RI)
+
+#Image name
+#ImageResult <- paste(filename_O, "_Convergence_plot.png", sep = "")
+#Start the plot-thing
+#png(filename = ImageResult)
+
+# render results
+plot(result_X_W0, type = "distances")
+plot(result_X_W18, type = "distances")
+plot(result_X_W88, type = "distances")
+
+
+#dev.off()
+# fetch results
+result2_X_W0 <- result_X_W0$RI[1:result_X_W0$cutoff_value,]
+result2_X_W18 <- result_X_W18$RI[1:result_X_W18$cutoff_value,]
+result2_X_W88 <- result_X_W88$RI[1:result_X_W88$cutoff_value,]
+
+print(result2_X_W0)
+print(result2_X_W18)
+print(result2_X_W88)
+
+#Image name
+#ImageIDgraph <- paste(filename_X_W0, "_Id_graph_plot.png", sep = "")
+#ImageIDgraph <- paste(filename_X_W18, "_Id_graph_plot.png", sep = "")
+#ImageIDgraph <- paste(filename_X_W88, "_Id_graph_plot.png", sep = "")
+
+#Start the plot-thing
+#png(filename = ImageIDgraph)
+# prepare id graph plot
+
+gid_X_W0 <- build.idgraph(result_X_W0, size = 20)
+plot.idgraph(gid_X_W0, label_dist = 0.3)
+
+gid_X_W18 <- build.idgraph(result_X_W18, size = 20)
+plot.idgraph(gid_X_W18, label_dist = 0.3)
+
+gid_X_W88 <- build.idgraph(result_X_W88, size = 20)
+plot.idgraph(gid_X_W88, label_dist = 0.3)
+
+#Close the plotting
+#dev.off()
+#}
+
